@@ -1,0 +1,40 @@
+{
+    "type": [
+        "null",
+        "object"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "id": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "estimate": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "repo_id": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "pipeline": {
+            "type": [
+                "null",
+                "string"
+            ]
+        },
+        "updated_at": {
+            "type": [
+                "null",
+                "string"
+            ],
+            "format": "date-time"
+        }
+    }
+}
