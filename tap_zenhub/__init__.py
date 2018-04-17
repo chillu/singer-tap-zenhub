@@ -8,11 +8,11 @@ from . import streams as streams_
 from .context import Context
 from . import schemas
 
-REQUIRED_CONFIG_KEYS = ["start_date", "username", "password"]
+REQUIRED_CONFIG_KEYS = ["zenhub_token", "github_token", "repos"]
 LOGGER = singer.get_logger()
 
-
 def check_credentials_are_authorized(ctx):
+    # TODO Check connectivity
     pass
 
 
@@ -30,11 +30,10 @@ def discover(ctx):
         ))
     return catalog
 
-
 def sync(ctx):
     for tap_stream_id in ctx.selected_stream_ids:
         schemas.load_and_write_schema(tap_stream_id)
-    streams_.sync_lists(ctx)
+    streams_.sync_issues(ctx)
     ctx.write_state()
 
 @utils.handle_top_exception(LOGGER)
@@ -43,7 +42,6 @@ def main():
     ctx = Context(args.config, args.state)
     if args.discover:
         discover(ctx).dump()
-        print()
     else:
         ctx.catalog = Catalog.from_dict(args.properties) \
             if args.properties else discover(ctx)

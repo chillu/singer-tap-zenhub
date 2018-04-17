@@ -11,7 +11,7 @@
                 "integer"
             ]
         },
-        "estimate": {
+        "estimate_value": {
             "type": [
                 "null",
                 "integer"
@@ -23,7 +23,7 @@
                 "integer"
             ]
         },
-        "pipeline": {
+        "pipeline_name": {
             "type": [
                 "null",
                 "string"

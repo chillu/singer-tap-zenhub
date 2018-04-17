@@ -2,7 +2,6 @@ from datetime import datetime, date
 import pendulum
 import singer
 from singer import bookmarks as bks_
-from .http import Client
 
 
 class Context(object):
@@ -11,14 +10,12 @@ class Context(object):
 
     - config  - The JSON structure from the config.json argument
     - state   - The mutable state dict that is shared among streams
-    - client  - An HTTP client object for interacting with the API
     - catalog - A singer.catalog.Catalog. Note this will be None during
                 discovery.
     """
     def __init__(self, config, state):
         self.config = config
         self.state = state
-        self.client = Client(config)
         self._catalog = None
         self.selected_stream_ids = None
         self.now = datetime.utcnow()

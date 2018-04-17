@@ -5,13 +5,13 @@ from singer import utils
 
 
 class IDS(object):
-    FOO = "foo"
+    ISSUES = "issues"
 
 stream_ids = [getattr(IDS, x) for x in dir(IDS)
               if not x.startswith("__")]
 
 PK_FIELDS = {
-    IDS.FOO: ["foo"],
+    IDS.ISSUES: ["id"],
 }
 
 
