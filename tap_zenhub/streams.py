@@ -110,7 +110,6 @@ def sync_issues(ctx):
     # The Zenhub "board" API doesn't include those, but they are still relevant for statistics
     query_updated_filter = ""
     last_updated = ctx.get_bookmark(['issues', 'last_updated'])
-    print(last_updated)
     if last_updated:
         query_updated_filter = ">" + last_updated
 
