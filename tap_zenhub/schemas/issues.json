@@ -7,8 +7,7 @@
     "properties": {
         "id": {
             "type": [
-                "null",
-                "integer"
+                "string"
             ]
         },
         "estimate_value": {
@@ -17,10 +16,19 @@
                 "integer"
             ]
         },
-        "repo_id": {
+        "repository_id": {
             "type": [
-                "null",
-                "integer"
+                "string"
+            ]
+        },
+        "repository_name": {
+            "type": [
+                "string"
+            ]
+        },
+        "repository_owner": {
+            "type": [
+                "string"
             ]
         },
         "pipeline_name": {
