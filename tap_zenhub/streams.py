@@ -128,7 +128,7 @@ def sync_issues(ctx):
             ]),
             'repository_name': github_issue.get('repository').get('name'),
             'repository_owner': github_issue.get('repository').get('owner').get('login'),
-            'repository_id': github_issue.get('repository').get('databaseId'),
+            'repository_id': github_issue.get('repository').get('id'),
             'issue_number': github_issue.get('number'),
             'estimate_value': zenhub_issue.get('estimate', {}).get('value'),
             'pipeline_name': zenhub_issue.get('pipeline').get('name'),

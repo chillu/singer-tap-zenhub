@@ -37,6 +37,16 @@
                 "string"
             ]
         },
+        "is_epic": {
+            "type": [
+                "boolean"
+            ]
+        },
+        "issue_number": {
+            "type": [
+                "number"
+            ]
+        },
         "updated_at": {
             "type": [
                 "null",
