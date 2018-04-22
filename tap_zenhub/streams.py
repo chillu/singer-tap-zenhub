@@ -47,8 +47,15 @@ query ($queryStr: String!, $after: String) {
 }
 """
 
+    query_str_parts = [
+        'is:issue ' + repos_query,
+        'is:' + state
+    ]
+    if updated:
+         query_str_parts.append("updated:" + updated)
+
     variables = {
-      'queryStr': 'is:issue %s is:%s updated:%s' % (repos_query, state, updated)
+      'queryStr': " ".join(query_str_parts)
     }
 
     issues = github_client.query_all(query, variables, 'search')
