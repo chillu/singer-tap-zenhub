@@ -6,12 +6,14 @@ from singer import utils
 
 class IDS(object):
     ISSUES = "issues"
+    ISSUE_EVENTS = "issue_events"
 
 stream_ids = [getattr(IDS, x) for x in dir(IDS)
               if not x.startswith("__")]
 
 PK_FIELDS = {
     IDS.ISSUES: ["id"],
+    IDS.ISSUE_EVENTS: ["id"],
 }
 
 

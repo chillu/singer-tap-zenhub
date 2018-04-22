@@ -44,6 +44,10 @@ class Zenhub(object):
         path = '/p1/repositories/%s/issues/%s' % (repo_id, issue_number)
         return self._get(path)
 
+    def issue_events(self, repo_id, issue_number):
+        path = '/p1/repositories/%s/issues/%s/events' % (repo_id, issue_number)
+        return self._get(path)
+
     def board(self, repo_id):
         path = '/p1/repositories/%s/board' % (repo_id)
         return self._get(path)

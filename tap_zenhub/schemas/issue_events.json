@@ -10,7 +10,18 @@
                 "string"
             ]
         },
-        "estimate_value": {
+        "type": {
+            "type": [
+                "string"
+            ]
+        },
+        "from_estimate_value": {
+            "type": [
+                "null",
+                "integer"
+            ]
+        },
+        "to_estimate_value": {
             "type": [
                 "null",
                 "integer"
@@ -36,15 +47,16 @@
                 "string"
             ]
         },
-        "pipeline_name": {
+        "from_pipeline_name": {
             "type": [
                 "null",
                 "string"
             ]
         },
-        "is_epic": {
+        "to_pipeline_name": {
             "type": [
-                "boolean"
+                "null",
+                "string"
             ]
         },
         "issue_number": {
@@ -52,9 +64,13 @@
                 "number"
             ]
         },
-        "updated_at": {
+        "user_id": {
             "type": [
-                "null",
+                "number"
+            ]
+        },
+        "created_at": {
+            "type": [
                 "string"
             ],
             "format": "date-time"

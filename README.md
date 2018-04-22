@@ -11,6 +11,7 @@ This tap:
 - Pulls raw data from [Zenhub](http://zenhub.com)
 - Extracts the following resources:
   - [Issues](https://github.com/ZenHubIO/API#get-issue-data)
+  - [Issue Events](https://github.com/ZenHubIO/API#get-issue-events)
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
