@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="tap-zenhub",
@@ -18,7 +18,7 @@ setup(
     [console_scripts]
     tap-zenhub=tap_zenhub:main
     """,
-    packages=["tap_zenhub"],
+    packages=find_packages(),
     package_data = {
         "schemas": ["tap_zenhub/schemas/*.json"]
     },
