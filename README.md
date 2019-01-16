@@ -72,3 +72,12 @@ Install as an [editable dependency](https://docs.pipenv.org/basics/#editable-dep
 git clone https://github.com/chillu/singer-tap-zenhub.git
 pipenv install --dev -e .
 ```
+
+## Stich Tap Integration
+
+A complete example on how to send this data to a [Stitch Target](https://github.com/singer-io/target-stitch),
+while also saving new state.
+
+```
+pipenv run tap-zenhub --state state.json --config config.json | target-stitch --config target-config.json -v  >> state.json
+```
