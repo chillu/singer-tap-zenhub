@@ -61,8 +61,31 @@ existing issues - there is no way to tell when an issue was last updated with Ze
     pipenv run tap-zenhub --config config.json --state state.json
     ```
 
+5. Using state
+
 Supplying a `state.json` helps the tap to reduce API calls,
 and only fetch closed issues since the last run.
+It will also re-start partial imports on a repo,
+and prioritise repos with the least recent import runs.
+
+First you'll need to create an empty state file:
+
+```
+echo '{"bookmarks": {"issues": {}}}' > state.json
+```
+
+Now you can run it with that empty state:
+
+```
+pipenv run tap-zenhub --config config.json --state state.json
+```
+
+In order to write new state, you'll need to send to a target.
+Here's an example with the [Stitch Target](https://github.com/singer-io/target-stitch).
+
+```
+pipenv run tap-zenhub --state state.json --config config.json | target-stitch --config target-config.json -v  > state.tmp.json && rm state.json && mv state.tmp.json state.json
+```
 
 ## Development
 
@@ -71,13 +94,4 @@ Install as an [editable dependency](https://docs.pipenv.org/basics/#editable-dep
 ```bash
 git clone https://github.com/chillu/singer-tap-zenhub.git
 pipenv install --dev -e .
-```
-
-## Stich Tap Integration
-
-A complete example on how to send this data to a [Stitch Target](https://github.com/singer-io/target-stitch),
-while also saving new state.
-
-```
-pipenv run tap-zenhub --state state.json --config config.json | target-stitch --config target-config.json -v  >> state.json
 ```

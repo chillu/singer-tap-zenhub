@@ -194,7 +194,9 @@ def sync_issues(config, state):
 
     # Sort by ascending last updated (string-based, but works).
     # This means we'll always start with the least recently updated repo.
-    # If no dates are set, will retain config order
+    # If no dates are set, will retain config order.
+    # Since this is only written after successful import,
+    # it also retries partial/aborted repo imports.
     repos_by_last_updated = {}
     for repo in repos:
         repos_by_last_updated[repo] = bookmarks.get(repo + '.last_updated')
@@ -204,7 +206,6 @@ def sync_issues(config, state):
      )
 
     for repo, last_updated in repos_by_last_updated:
-        print(last_updated)
         sync_issues_for_repo(
             repo,
             last_updated,
