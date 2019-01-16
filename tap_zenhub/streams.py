@@ -1,4 +1,5 @@
 import singer
+from singer import utils
 from datetime import datetime
 from .clients.github import Github as GithubClient
 from .clients.zenhub import Zenhub as ZenhubClient
@@ -79,6 +80,7 @@ query ($owner: String!, $name: String!) {
     return data['data']['repository']
 
 def sync_issues(config, state):
+    new_state = state
     bookmarks = state.get('bookmarks').get('issues') if state else {}
     repos = config.get('repos')
     github_client = GithubClient(token=config.get('github_token'))
@@ -165,7 +167,7 @@ def sync_issues(config, state):
 
             # Remember where we left off for this repo,
             # to avoid querying potentially thousands of closed issues from both Zenhub and Github
-            ctx.set_bookmark(['issues', repo + '.last_updated'], datetime.utcnow())
+            new_state.get('bookmarks').get('issues').update({repo + '.last_updated': utils.strftime(utils.now())})
 
     # Get events for each issue
     # Needs to include all processed issues,
@@ -201,3 +203,5 @@ def sync_issues(config, state):
             singer.write_record('issue_events', record)
             # with singer.metrics.record_counter('issue_events') as counter:
             #     counter.increment()
+
+    return new_state

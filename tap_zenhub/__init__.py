@@ -20,7 +20,9 @@ def main():
     
     singer.write_schema("issues", load_schema("issues"), ["id"])
     singer.write_schema("issue_events", load_schema("issue_events"), ["id"])
-    streams_.sync_issues(args.config, args.state)
+
+    new_state = streams_.sync_issues(args.config, args.state)
+    singer.write_state(new_state)
 
 if __name__ == "__main__":
     main()
