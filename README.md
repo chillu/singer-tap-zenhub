@@ -15,15 +15,16 @@ This tap:
 - Outputs the schema for each resource
 - Incrementally pulls data based on the input state
 
+Due to limitations in the Zenhub API, issue events are pulled for all
+existing issues - there is no way to tell when an issue was last updated with Zenhub.
+
 
 ## Quick start
 
-1. Install
-
-    Clone this repo, then run:
+1. Install through [pipenv](https://pipenv.org/)
 
     ```
-    python setup.py install
+    pipenv install git+https://github.com/chillu/singer-tap-zenhub.git@master#egg=tap_zenhub
     ```
 
 2. Create a GitHub access token
@@ -53,28 +54,21 @@ This tap:
     }
     ```
 
-5. Run the tap in discovery mode to get properties.json file
-    
-    ```bash
-    tap-zenhub --config config.json --discover > properties.json
-    ```
 
-6. In the properties.json file, select the streams to sync
-  
-    Each stream in the properties.json file has a "schema" entry.  To select a stream to sync, add `"selected": true` to that stream's "schema" entry.  For example, to sync the `issues` stream:
-    ```
-    ...
-    "tap_stream_id": "issues",
-    "schema": {
-      "selected": true,
-      "properties": {
-        ...
-    ```
-
-6. Run the application
-
-    `tap-zenhub` can be run with:
+4. Run the application
 
     ```bash
-    tap-zenhub --config config.json --properties properties.json
+    pipenv run tap-zenhub --config config.json --state state.json
     ```
+
+Supplying a `state.json` helps the tap to reduce API calls,
+and only fetch closed issues since the last run.
+
+## Development
+
+Install as an [editable dependency](https://docs.pipenv.org/basics/#editable-dependencies-e-g-e)
+
+```bash
+git clone https://github.com/chillu/singer-tap-zenhub.git
+pipenv install --dev -e .
+```

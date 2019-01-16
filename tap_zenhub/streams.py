@@ -1,6 +1,5 @@
 import singer
 from datetime import datetime
-from .schemas import IDS
 from .clients.github import Github as GithubClient
 from .clients.zenhub import Zenhub as ZenhubClient
 
@@ -79,10 +78,11 @@ query ($owner: String!, $name: String!) {
     data = github_client.query(query, {'owner': owner, 'name': name})
     return data['data']['repository']
 
-def sync_issues(ctx):
-    repos = ctx.config.get('repos')
-    github_client = GithubClient(token=ctx.config.get('github_token'))
-    zenhub_client = ZenhubClient(token=ctx.config.get('zenhub_token'))
+def sync_issues(config, state):
+    bookmarks = state.get('bookmarks').get('issues') if state else {}
+    repos = config.get('repos')
+    github_client = GithubClient(token=config.get('github_token'))
+    zenhub_client = ZenhubClient(token=config.get('zenhub_token'))
 
     all_issues = []
 
@@ -121,7 +121,7 @@ def sync_issues(ctx):
     # Get all issues closed since the last sync (by updated date).
     # The Zenhub "board" API doesn't include those, but they are still relevant for statistics
     query_updated_filter = ""
-    last_updated = ctx.get_bookmark(['issues', 'last_updated'])
+        last_updated = bookmarks.get(repo + '.last_updated')
     if last_updated:
         query_updated_filter = ">" + last_updated
 
