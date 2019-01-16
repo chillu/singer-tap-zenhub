@@ -89,6 +89,7 @@ def sync_issues(config, state):
     # Resolve repo names to ids
     repos_with_data = {}
     for repo in repos:
+        LOGGER.info(repo + ': Get repo data')
         repos_with_data[repo] = get_repo_data(github_client, repo)
 
     # Get issues for all boards
@@ -96,6 +97,7 @@ def sync_issues(config, state):
         owner,name = repo.split('/')
         # TODO Will be deprecated in July 2018,
         # see https://github.com/ZenHubIO/API/issues/85
+        LOGGER.info(repo + ': Get zenhub board')
         board = zenhub_client.board(repo_data.get('databaseId'))
         for pipeline in board.get('pipelines'):
             for issue in pipeline.get('issues'):
@@ -114,43 +116,56 @@ def sync_issues(config, state):
                     'is_epic': issue.get('is_epic')
                 }
                 all_issues.append(record)
-                singer.write_record('issues', record)
-                with singer.metrics.record_counter('issues') as counter:
-                    counter.increment()
+                # singer.write_record('issues', record)
+                # with singer.metrics.record_counter('issues') as counter:
+                #     counter.increment()
 
     # Get all issues closed since the last sync (by updated date).
-    # The Zenhub "board" API doesn't include those, but they are still relevant for statistics
-    query_updated_filter = ""
+    # The Zenhub "board" API doesn't include those, but they are still relevant for statistics.
+    # Do this for each individual repo in order to track last_updated per repo,
+    # and support later additions of new repos to the config
+    for repo, repo_data in repos_with_data.items():
+        query_updated_filter = ""
         last_updated = bookmarks.get(repo + '.last_updated')
-    if last_updated:
-        query_updated_filter = ">" + last_updated
+        if last_updated:
+            query_updated_filter = ">" + last_updated
 
-    github_issues = get_github_issues(github_client, repos, state="closed", updated=query_updated_filter)
-    for github_issue in github_issues:
-        zenhub_issue = zenhub_client.issue(
-            # TODO Will be deprecated in July 2018,
-            # see https://github.com/ZenHubIO/API/issues/85
-            repo_id=github_issue.get('repository').get('databaseId'),
-            issue_number=github_issue.get('number')
-        )
-        record = {
-            'id': '-'.join([
-                github_issue.get('repository').get('id'),
-                str(github_issue.get('number'))
-            ]),
-            'repository_name': github_issue.get('repository').get('name'),
-            'repository_owner': github_issue.get('repository').get('owner').get('login'),
-            'repository_id': github_issue.get('repository').get('id'),
-            'repository_database_id': github_issue.get('repository').get('databaseId'),
-            'issue_number': github_issue.get('number'),
-            'estimate_value': zenhub_issue.get('estimate', {}).get('value'),
-            'pipeline_name': zenhub_issue.get('pipeline').get('name'),
-            'is_epic': zenhub_issue.get('is_epic')
-        }
-        all_issues.append(record)
-        singer.write_record('issues', record)
-        with singer.metrics.record_counter('issues') as counter:
-            counter.increment()
+        if last_updated:
+            LOGGER.info(repo + ': Get closed Github issues since ' + last_updated)
+        else:
+            LOGGER.info(repo + ': Get closed Github issues')
+
+        github_issues = get_github_issues(github_client, [repo], state="closed", updated=query_updated_filter)
+        for github_issue in github_issues:
+            LOGGER.info(repo + ': Get Zenhub issue for #' + str(github_issue.get('number')))
+            zenhub_issue = zenhub_client.issue(
+                # TODO Will be deprecated in July 2018,
+                # see https://github.com/ZenHubIO/API/issues/85
+                repo_id=github_issue.get('repository').get('databaseId'),
+                issue_number=github_issue.get('number')
+            )
+            record = {
+                'id': '-'.join([
+                    github_issue.get('repository').get('id'),
+                    str(github_issue.get('number'))
+                ]),
+                'repository_name': github_issue.get('repository').get('name'),
+                'repository_owner': github_issue.get('repository').get('owner').get('login'),
+                'repository_id': github_issue.get('repository').get('id'),
+                'repository_database_id': github_issue.get('repository').get('databaseId'),
+                'issue_number': github_issue.get('number'),
+                'estimate_value': zenhub_issue.get('estimate', {}).get('value'),
+                'pipeline_name': zenhub_issue.get('pipeline').get('name'),
+                'is_epic': zenhub_issue.get('is_epic')
+            }
+            all_issues.append(record)
+            singer.write_record('issues', record)
+            # with singer.metrics.record_counter('issues') as counter:
+            #     counter.increment()
+
+            # Remember where we left off for this repo,
+            # to avoid querying potentially thousands of closed issues from both Zenhub and Github
+            ctx.set_bookmark(['issues', repo + '.last_updated'], datetime.utcnow())
 
     # Get events for each issue
     # Needs to include all processed issues,
@@ -159,6 +174,8 @@ def sync_issues(config, state):
     # Does not closed issues older than last_updated.
     # TODO Recommend using webhooks for collection instead
     for issue in all_issues:
+        repo = '/'.join([issue.get('repository_owner'), issue.get('repository_name')])
+        LOGGER.info(repo + ': Get Zenhub issue events for #' + str(issue.get('issue_number')))
         issue_events = zenhub_client.issue_events(
             repo_id=issue.get('repository_database_id'),
             issue_number=issue.get('issue_number')
@@ -166,27 +183,21 @@ def sync_issues(config, state):
         for issue_event in issue_events:
             record = {
                 'id': '-'.join([
-                issue.get('id'),
-                issue_event.get('created_at')
-            ]),
-            'repository_name': issue.get('repository_name'),
-            'repository_owner': issue.get('repository_owner'),
-            'repository_id': issue.get('repository_id'),
-            'repository_database_id': issue.get('repository_database_id'),
-            'issue_number': issue.get('issue_number'),
-            'from_estimate_value': issue_event.get('from_estimate', {}).get('value'),
-            'to_estimate_value': issue_event.get('to_estimate', {}).get('value'),
-            'from_pipeline_name': issue_event.get('from_pipeline', {}).get('name'),
-            'to_pipeline_name': issue_event.get('to_pipeline', {}).get('name'),
-            'user_id': issue_event.get('user_id'),
-            'created_at': issue_event.get('created_at')
+                    issue.get('id'),
+                    issue_event.get('created_at')
+                ]),
+                'repository_name': issue.get('repository_name'),
+                'repository_owner': issue.get('repository_owner'),
+                'repository_id': issue.get('repository_id'),
+                'repository_database_id': issue.get('repository_database_id'),
+                'issue_number': issue.get('issue_number'),
+                'from_estimate_value': issue_event.get('from_estimate', {}).get('value'),
+                'to_estimate_value': issue_event.get('to_estimate', {}).get('value'),
+                'from_pipeline_name': issue_event.get('from_pipeline', {}).get('name'),
+                'to_pipeline_name': issue_event.get('to_pipeline', {}).get('name'),
+                'user_id': issue_event.get('user_id'),
+                'created_at': issue_event.get('created_at')
             }
             singer.write_record('issue_events', record)
-            with singer.metrics.record_counter('issue_events') as counter:
-                counter.increment()
-
-    # Remember where we left off,
-    # to avoid querying potentially thousands of closed issues from both
-    # Zenhub and Github
-    ctx.set_bookmark(['issues', 'last_updated'], datetime.utcnow())
-    ctx.write_state()
+            # with singer.metrics.record_counter('issue_events') as counter:
+            #     counter.increment()
